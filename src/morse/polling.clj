@@ -1,9 +1,7 @@
 (ns morse.polling
   "Declares long-polling routines to communicate with Telegram Bot API"
   (:require [clojure.tools.logging :as log]
-            [clojure.core.async :as a
-             :refer [chan go go-loop thread
-                     >!! >! <! close! alts!]]
+            [clojure.core.async :as a]
             [morse.api :as api]))
 
 
@@ -23,32 +21,32 @@
   (let [updates (a/chan)
         ;; timeout for Telegram API in seconds
         timeout (or (:timeout opts) 1)]
-    (go-loop [offset 0]
+    (a/go-loop [offset 0]
       (let [;; fix for JDK bug https://bugs.openjdk.java.net/browse/JDK-8075484
             ;; introduce additional timeout 10 times more that telegram's one
             wait-timeout (a/go (a/<! (a/timeout (* 1000 timeout 10)))
                                ::wait-timeout)
-            response     (api/get-updates-async token (assoc opts :offset offset))
+            response (api/get-updates-async token (assoc opts :offset offset))
             [data _] (a/alts! [running response wait-timeout])]
         (case data
           ;; running got closed by the user
           nil
           (do (log/info "Stopping Telegram polling...")
-              (close! wait-timeout)
-              (close! updates))
+              (a/close! wait-timeout)
+              (a/close! updates))
 
           ::wait-timeout
           (do (log/error "HTTP request timed out, stopping polling")
-              (close! running)
-              (close! updates))
+              (a/close! running)
+              (a/close! updates))
 
           ::api/error
           (do (log/warn "Got error from Telegram API, stopping polling")
-              (close! running)
-              (close! updates))
+              (a/close! running)
+              (a/close! updates))
 
-          (do (close! wait-timeout)
-              (doseq [upd data] (>! updates upd))
+          (do (a/close! wait-timeout)
+              (doseq [upd data] (a/>! updates upd))
               (recur (new-offset data offset))))))
     updates))
 
@@ -62,8 +60,8 @@
 
    Will be stopped when channel is closed."
   [updates handler]
-  (go-loop []
-    (when-let [data (<! updates)]
+  (a/go-loop []
+    (when-let [data (a/<! updates)]
       (try
         (handler data)
         (catch Throwable t
@@ -77,7 +75,7 @@
   be called in a blocking manner."
   ([token handler] (start token handler {}))
   ([token handler opts]
-   (let [running (chan)
+   (let [running (a/chan)
          updates (create-producer running token opts)]
      (create-consumer updates handler)
      running)))
@@ -86,4 +84,4 @@
 (defn stop
   "Stops everything"
   [running]
-  (close! running))
+  (a/close! running))
