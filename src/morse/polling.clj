@@ -1,7 +1,6 @@
 (ns morse.polling
   "Declares long-polling routines to communicate with Telegram Bot API"
-  (:require [clojure.tools.logging :as log]
-            [clojure.core.async :as a]
+  (:require [clojure.core.async :as a]
             [morse.api :as api]))
 
 
@@ -31,17 +30,17 @@
         (case data
           ;; running got closed by the user
           nil
-          (do (log/info "Stopping Telegram polling...")
+          (do (println "Stopping Telegram polling...")
               (a/close! wait-timeout)
               (a/close! updates))
 
           ::wait-timeout
-          (do (log/error "HTTP request timed out, stopping polling")
+          (do (println "HTTP request timed out, stopping polling")
               (a/close! running)
               (a/close! updates))
 
           ::api/error
-          (do (log/warn "Got error from Telegram API, stopping polling")
+          (do (println "Got error from Telegram API, stopping polling")
               (a/close! running)
               (a/close! updates))
 
@@ -65,7 +64,7 @@
       (try
         (handler data)
         (catch Throwable t
-          (log/error t "Unable to handle update" data)))
+          (println t "Unable to handle update" data)))
       (recur))))
 
 

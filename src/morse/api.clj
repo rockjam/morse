@@ -1,6 +1,5 @@
 (ns morse.api
-  (:require [clojure.tools.logging :as log]
-            [clj-http.client :as http]
+  (:require [clj-http.client :as http]
             [clojure.string :as string]
             [cheshire.core :as json]
             [clojure.core.async :as a])
@@ -26,7 +25,7 @@
                         (a/put! result ::error))
                       (a/close! result))
          on-failure (fn [err]
-                      (log/debug err "Exception while getting updates from Telegram API")
+                      (println err "Exception while getting updates from Telegram API")
                       (a/put! result ::error)
                       (a/close! result))]
      (http/get url request on-success on-failure)

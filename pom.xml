@@ -18,7 +18,7 @@
     <url>https://github.com/otann/morse</url>
     <connection>scm:git:git://github.com/rockjam/morse.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rockjam/morse.git</developerConnection>
-    <tag>730dd2926bc77ac3cdbe369759d7af7b7cdf06a7</tag>
+    <tag>82d22fa08fff952b8e8b73c796bd397930a82814</tag>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -78,11 +78,6 @@
       <groupId>org.clojure</groupId>
       <artifactId>core.async</artifactId>
       <version>0.4.474</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.logging</artifactId>
-      <version>0.4.1</version>
     </dependency>
     <dependency>
       <groupId>clj-stacktrace</groupId>
